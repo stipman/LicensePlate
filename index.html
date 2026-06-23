@@ -403,27 +403,24 @@
   element.addEventListener("contextmenu", (e) => e.preventDefault());
 }
 
-
-      // Render state list
-stateListEl.innerHTML = "";
-STATES.forEach((state) => {
-  const status = getStateStatus(state, historical, current);
-
-  const item = document.createElement("div");
-  item.className = `state-item ${status}`;
-  item.textContent = state;
-
-  // Clicking the tile records a sighting
-  item.addEventListener("click", () => handleStateClick(state));
-
-  // Long-press (mobile) or right-click (desktop) undoes this trip
-  item.addEventListener("contextmenu", (e) => {
-    e.preventDefault();
-    handleUndoCurrentTrip(state);
+  // Render state list
+  stateListEl.innerHTML = "";
+  STATES.forEach((state) => {
+    const status = getStateStatus(state, historical, current);
+  
+    const item = document.createElement("div");
+    item.className = `state-item ${status}`;
+    item.textContent = state;
+  
+    addPressHandlers(
+      item,
+      () => handleStateClick(state),            // tap
+      () => handleUndoCurrentTrip(state),       // long press
+      () => handleFullResetState(state)         // extra-long press
+    );
+  
+    stateListEl.appendChild(item);
   });
-
-  stateListEl.appendChild(item);
-});
 
       // Render map grid
       mapGridEl.innerHTML = "";
@@ -437,6 +434,19 @@ STATES.forEach((state) => {
     }
 
     // --- Event handlers ---
+
+    function handleFullResetState(state) {
+      const historical = loadSightings(STORAGE_KEYS.historical);
+      const current = loadSightings(STORAGE_KEYS.current);
+    
+      delete historical[state];
+      delete current[state];
+    
+      saveSightings(STORAGE_KEYS.historical, historical);
+      saveSightings(STORAGE_KEYS.current, current);
+    
+      render();
+    }
 
     function handleStateClick(state) {
       const historical = loadSightings(STORAGE_KEYS.historical);
