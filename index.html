@@ -121,7 +121,6 @@
     .legend-swatch.this-trip { background: var(--this-trip); }
     .legend-swatch.previous-trip { background: var(--previous-trip); }
 
-    /* State list */
     .state-list {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
@@ -144,7 +143,6 @@
     .state-item.this-trip { background: var(--this-trip); color: #000; }
     .state-item.previous-trip { background: var(--previous-trip); color: #000; }
 
-    /* Map grid */
     .map-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
@@ -165,7 +163,6 @@
     .map-cell.this-trip { background: var(--this-trip); }
     .map-cell.previous-trip { background: var(--previous-trip); }
 
-    /* SVG map */
     .us-map {
       width: 100%;
       max-width: 600px;
@@ -212,7 +209,6 @@
 
     <section class="layout">
 
-      <!-- STATE LIST -->
       <section class="panel">
         <h2>State List</h2>
         <div class="legend">
@@ -223,7 +219,6 @@
         <div id="state-list" class="state-list"></div>
       </section>
 
-      <!-- SVG MAP -->
       <section class="panel">
         <h2>United States SVG Map</h2>
         <div class="legend">
@@ -234,13 +229,11 @@
         <svg id="us-map" class="us-map" viewBox="0 0 500 300"></svg>
       </section>
 
-      <!-- FULL GRID MAP -->
       <section class="panel">
         <h2>Full Grid Map</h2>
         <div id="map-grid" class="map-grid"></div>
       </section>
 
-      <!-- EAST COAST GRID -->
       <section class="panel">
         <h2>East Coast States</h2>
         <div id="east-coast-grid" class="map-grid"></div>
@@ -250,10 +243,6 @@
   </main>
 
   <script>
-    /* ------------------------------
-       STATE DATA
-    ------------------------------ */
-
     const STATES = [
       "AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA",
       "HI","ID","IL","IN","IA","KS","KY","LA","ME","MD",
@@ -272,10 +261,6 @@
       current: "lp_current_trip_sightings"
     };
 
-    /* ------------------------------
-       STORAGE HELPERS
-    ------------------------------ */
-
     function loadSightings(key) {
       const raw = localStorage.getItem(key);
       if (!raw) return {};
@@ -291,64 +276,37 @@
       localStorage.removeItem(key);
     }
 
-    /* ------------------------------
-       STATUS LOGIC
-    ------------------------------ */
-
     function getStateStatus(state, historical, current) {
       if (current[state]) return "this-trip";
       if (historical[state]) return "previous-trip";
       return "never";
     }
 
-    /* ------------------------------
-       HAPTIC FEEDBACK
-    ------------------------------ */
-
     function vibrate(pattern) {
       if (navigator.vibrate) navigator.vibrate(pattern);
     }
 
-    /* ------------------------------
-       PRESS HANDLER (tap / long / extra-long)
-    ------------------------------ */
-
     function addPressHandlers(element, onTap, onLongPress, onExtraLongPress) {
       let pressStart = 0;
 
-      const start = () => {
-        pressStart = Date.now();
-      };
-
+      const start = () => { pressStart = Date.now(); };
       const end = () => {
         if (!pressStart) return;
         const duration = Date.now() - pressStart;
 
-        if (duration < 500) {
-          onTap();
-        } else if (duration < 1500) {
-          vibrate(40);
-          onLongPress();
-        } else {
-          vibrate([60, 40, 60]);
-          onExtraLongPress();
-        }
+        if (duration < 500) onTap();
+        else if (duration < 1500) { vibrate(40); onLongPress(); }
+        else { vibrate([60,40,60]); onExtraLongPress(); }
 
         pressStart = 0;
       };
 
       element.addEventListener("touchstart", start);
       element.addEventListener("touchend", end);
-
       element.addEventListener("mousedown", start);
       element.addEventListener("mouseup", end);
-
       element.addEventListener("contextmenu", (e) => e.preventDefault());
     }
-
-    /* ------------------------------
-       EVENT HANDLERS
-    ------------------------------ */
 
     function handleStateClick(state) {
       const historical = loadSightings(STORAGE_KEYS.historical);
@@ -394,10 +352,6 @@
       clearSightings(STORAGE_KEYS.historical);
       render();
     }
-
-    /* ------------------------------
-       RENDER FUNCTIONS
-    ------------------------------ */
 
     const stateListEl = document.getElementById("state-list");
     const mapGridEl = document.getElementById("map-grid");
@@ -455,4 +409,56 @@
       const yPad = 10;
 
       STATES.forEach((state, index) => {
-        const status = getState
+        const status = getStateStatus(state, historical, current);
+        const col = index % cols;
+        const row = Math.floor(index / cols);
+
+        const x = xPad + col * (tileWidth + 4);
+        const y = yPad + row * (tileHeight + 4);
+
+        const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        g.setAttribute("class", `svg-state ${status}`);
+
+        const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+        rect.setAttribute("x", x);
+        rect.setAttribute("y", y);
+        rect.setAttribute("width", tileWidth);
+        rect.setAttribute("height", tileHeight);
+        rect.setAttribute("rx", 4);
+
+        const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        text.setAttribute("x", x + tileWidth / 2);
+        text.setAttribute("y", y + tileHeight / 2 + 3);
+        text.setAttribute("text-anchor", "middle");
+        text.textContent = state;
+
+        addPressHandlers(
+          g,
+          () => handleStateClick(state),
+          () => handleUndoCurrentTrip(state),
+          () => handleFullResetState(state)
+        );
+
+        g.appendChild(rect);
+        g.appendChild(text);
+        usMapEl.appendChild(g);
+      });
+    }
+
+    function render() {
+      const historical = loadSightings(STORAGE_KEYS.historical);
+      const current = loadSightings(STORAGE_KEYS.current);
+
+      renderStateList(historical, current);
+      renderGridMap(historical, current);
+      renderEastCoastGrid(historical, current);
+      renderSvgMap(historical, current);
+    }
+
+    document.getElementById("reset-current").addEventListener("click", handleResetCurrentTrip);
+    document.getElementById("reset-all").addEventListener("click", handleFullReset);
+
+    render();
+  </script>
+</body>
+</html>
