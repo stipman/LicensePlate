@@ -371,24 +371,12 @@
       });
     }
 
-    function renderSvgMap(historical, current) {
-      const paths = usMapEl.querySelectorAll(".state-path");
-      paths.forEach((path) => {
-        const id = path.id;
-        const status = getStateStatus(id, historical, current);
-        path.classList.remove("never", "this-trip", "previous-trip");
-        path.classList.add(status);
-      });
-    }
-
     function render() {
       const historical = loadSightings(STORAGE_KEYS.historical);
       const current = loadSightings(STORAGE_KEYS.current);
 
       renderStateList(historical, current);
-      renderGridMap(historical, current);
       renderEastCoastGrid(historical, current);
-      renderSvgMap(historical, current);
     }
 
     document.getElementById("reset-current").addEventListener("click", handleResetCurrentTrip);
