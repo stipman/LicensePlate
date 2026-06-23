@@ -297,6 +297,30 @@
           Each square represents a state. Colors show whether it’s never seen, seen on a previous trip, or seen on this trip.
         </p>
       </section>
+      <section class="panel">
+        <h2>East Coast States</h2>
+        <div class="legend">
+          <div class="legend-item">
+            <span class="legend-swatch never"></span>
+            <span>Never clicked</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-swatch this-trip"></span>
+            <span>Clicked this trip</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-swatch previous-trip"></span>
+            <span>Clicked on previous trip</span>
+          </div>
+        </div>
+      
+        <div id="east-coast-grid" class="map-grid"></div>
+      
+        <p class="footer-note">
+          East Coast states shown with the same color‑coding as the full map.
+        </p>
+      </section>
+
     </section>
   </main>
 
@@ -310,6 +334,12 @@
       "NM","NY","NC","ND","OH","OK","OR","PA","RI","SC",
       "SD","TN","TX","UT","VT","VA","WA","WV","WI","WY","DC"
     ];
+
+    const EAST_COAST_STATES = [
+      "FL","GA","SC","NC","MD","DE","NY","CT","RI","MA",
+      "VT","NH","ME","DC"
+    ];
+
 
     const STORAGE_KEYS = {
       historical: "lp_historical_sightings",
@@ -436,6 +466,17 @@
         cell.className = `map-cell ${status}`;
         cell.textContent = state;
         mapGridEl.appendChild(cell);
+      });
+      // Render East Coast grid
+      const eastGrid = document.getElementById("east-coast-grid");
+      eastGrid.innerHTML = "";
+      
+      EAST_COAST_STATES.forEach((state) => {
+        const status = getStateStatus(state, historical, current);
+        const cell = document.createElement("div");
+        cell.className = `map-cell ${status}`;
+        cell.textContent = state;
+        eastGrid.appendChild(cell);
       });
     }
 
