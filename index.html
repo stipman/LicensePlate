@@ -138,19 +138,20 @@
 
     .state-list {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
       gap: 0.4rem;
-      margin-top: 0.5rem;
+      width: 100%;
     }
-
+    
     .state-item {
       border-radius: 6px;
       border: 1px solid var(--border);
-      padding: 0.35rem 0.4rem;
-      display: flex;
-      flex-direction: column;
-      gap: 0.25rem;
-      background: #121212;
+      padding: 0.6rem 0.4rem;
+      text-align: center;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      user-select: none;
     }
 
     .state-header {
@@ -181,18 +182,20 @@
       padding: 0.25rem 0.3rem;
     }
 
+    /* Color states */
     .state-item.never {
-      background: #121212;
+      background: var(--never);
+      color: #000;
     }
-
+    
     .state-item.this-trip {
-      background: #1b3b1b;
-      border-color: #4caf50;
+      background: var(--this-trip);
+      color: #000;
     }
-
+    
     .state-item.previous-trip {
-      background: #3b2a12;
-      border-color: #ff9800;
+      background: var(--previous-trip);
+      color: #000;
     }
 
     .timestamp {
@@ -363,56 +366,25 @@
       const current = loadSightings(STORAGE_KEYS.current);
 
       // Render state list
-      stateListEl.innerHTML = "";
-      STATES.forEach((state) => {
-        const status = getStateStatus(state, historical, current);
+stateListEl.innerHTML = "";
+STATES.forEach((state) => {
+  const status = getStateStatus(state, historical, current);
 
-        const item = document.createElement("div");
-        item.className = `state-item ${status}`;
+  const item = document.createElement("div");
+  item.className = `state-item ${status}`;
+  item.textContent = state;
 
-        const header = document.createElement("div");
-        header.className = "state-header";
+  // Clicking the tile records a sighting
+  item.addEventListener("click", () => handleStateClick(state));
 
-        const codeSpan = document.createElement("span");
-        codeSpan.className = "state-code";
-        codeSpan.textContent = state;
+  // Long-press (mobile) or right-click (desktop) undoes this trip
+  item.addEventListener("contextmenu", (e) => {
+    e.preventDefault();
+    handleUndoCurrentTrip(state);
+  });
 
-        const statusSpan = document.createElement("span");
-        statusSpan.className = "state-status";
-        if (status === "never") statusSpan.textContent = "Never clicked";
-        else if (status === "this-trip") statusSpan.textContent = "This trip";
-        else statusSpan.textContent = "Previous trip";
-
-        header.appendChild(codeSpan);
-        header.appendChild(statusSpan);
-
-        const timestampDiv = document.createElement("div");
-        timestampDiv.className = "timestamp";
-        const ts = current[state] || historical[state];
-        timestampDiv.textContent = ts ? `Last: ${formatTimestamp(ts)}` : "";
-
-        const buttonsDiv = document.createElement("div");
-        buttonsDiv.className = "state-buttons";
-
-        const clickBtn = document.createElement("button");
-        clickBtn.textContent = "Click";
-        clickBtn.addEventListener("click", () => handleStateClick(state));
-
-        const undoTripBtn = document.createElement("button");
-        undoTripBtn.textContent = "Undo trip";
-        undoTripBtn.className = "secondary";
-        undoTripBtn.disabled = !current[state];
-        undoTripBtn.addEventListener("click", () => handleUndoCurrentTrip(state));
-
-        buttonsDiv.appendChild(clickBtn);
-        buttonsDiv.appendChild(undoTripBtn);
-
-        item.appendChild(header);
-        item.appendChild(timestampDiv);
-        item.appendChild(buttonsDiv);
-
-        stateListEl.appendChild(item);
-      });
+  stateListEl.appendChild(item);
+});
 
       // Render map grid
       mapGridEl.innerHTML = "";
