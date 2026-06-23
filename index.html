@@ -366,42 +366,48 @@
       const current = loadSightings(STORAGE_KEYS.current);
 
     // Key press options
-      function addPressHandlers(element, onTap, onLongPress, onExtraLongPress) {
-  let pressTimer = null;
-  let pressStart = 0;
-
-  const start = () => {
-    pressStart = Date.now();
-    pressTimer = setTimeout(() => {}, 1500); // just hold timer
-  };
-
-  const end = () => {
-    if (!pressStart) return;
-    const duration = Date.now() - pressStart;
-
-    if (duration < 500) {
-      onTap();
-    } else if (duration < 1500) {
-      onLongPress();
-    } else {
-      onExtraLongPress();
+    function addPressHandlers(element, onTap, onLongPress, onExtraLongPress) {
+      let pressTimer = null;
+      let pressStart = 0;
+    
+      const start = () => {
+        pressStart = Date.now();
+        pressTimer = setTimeout(() => {}, 1500);
+      };
+    
+      const end = () => {
+        if (!pressStart) return;
+        const duration = Date.now() - pressStart;
+    
+        if (duration < 500) {
+          // Tap
+          onTap();
+        } else if (duration < 1500) {
+          // Long press → undo this trip
+          vibrate(40); // short haptic pulse
+          onLongPress();
+        } else {
+          // Extra-long press → full reset of this state
+          vibrate([60, 40, 60]); // stronger pattern
+          onExtraLongPress();
+        }
+    
+        pressStart = 0;
+        clearTimeout(pressTimer);
+      };
+    
+      // Mobile
+      element.addEventListener("touchstart", start);
+      element.addEventListener("touchend", end);
+    
+      // Desktop
+      element.addEventListener("mousedown", start);
+      element.addEventListener("mouseup", end);
+    
+      // Prevent context menu
+      element.addEventListener("contextmenu", (e) => e.preventDefault());
     }
 
-    pressStart = 0;
-    clearTimeout(pressTimer);
-  };
-
-  // Mobile
-  element.addEventListener("touchstart", start);
-  element.addEventListener("touchend", end);
-
-  // Desktop
-  element.addEventListener("mousedown", start);
-  element.addEventListener("mouseup", end);
-
-  // Prevent context menu
-  element.addEventListener("contextmenu", (e) => e.preventDefault());
-}
 
   // Render state list
   stateListEl.innerHTML = "";
@@ -434,6 +440,12 @@
     }
 
     // --- Event handlers ---
+    
+    function vibrate(pattern) {
+      if (navigator.vibrate) {
+        navigator.vibrate(pattern);
+      }
+    }
 
     function handleFullResetState(state) {
       const historical = loadSightings(STORAGE_KEYS.historical);
