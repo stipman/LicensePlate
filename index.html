@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>License Plate Trip Tracker</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --never: #f0f0f0;
+      --this-trip: #4caf50;
+      --previous-trip: #ff9800;
+      --border: #ccc;
+      --bg: #222;
+      --text: #eee;
+      --accent: #2196f3;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    header {
+      padding: 1rem 1.5rem;
+      background: #111;
+      border-bottom: 1px solid #333;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 1.4rem;
+    }
+
+    header p {
+      margin: 0.3rem 0 0;
+      font-size: 0.9rem;
+      color: #aaa;
+    }
+
+    main {
+      padding: 1rem 1.5rem 2rem;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+
+    button {
+      border: none;
+      border-radius: 4px;
+      padding: 0.4rem 0.7rem;
+      font-size: 0.85rem;
+      cursor: pointer;
+      background: var(--accent);
+      color: white;
+    }
+
+    button.secondary {
+      background: #555;
+    }
+
+    button.danger {
+      background: #d32f2f;
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: default;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(260px, 1.2fr) minmax(260px, 1.5fr);
+      gap: 1.5rem;
+    }
+
+    @media (max-width: 800px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .panel {
+      background: #1a1a1a;
+      border-radius: 8px;
+      padding: 1rem;
+      border: 1px solid #333;
+    }
+
+    .panel h2 {
+      margin-top: 0;
+      font-size: 1.1rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+      font-size: 0.8rem;
+    }
+
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+    }
+
+    .legend-swatch {
+      width: 14px;
+      height: 14px;
+      border-radius: 3px;
+      border: 1px solid #444;
+    }
+
+    .legend-swatch.never {
+      background: var(--never);
+    }
+
+    .legend-swatch.this-trip {
+      background: var(--this-trip);
+    }
+
+    .legend-swatch.previous-trip {
+      background: var(--previous-trip);
+    }
+
+    /* State list */
+
+    .state-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+      gap: 0.4rem;
+      margin-top: 0.5rem;
+    }
+
+    .state-item {
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      padding: 0.35rem 0.4rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      background: #121212;
+    }
+
+    .state-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.85rem;
+    }
+
+    .state-code {
+      font-weight: 600;
+    }
+
+    .state-status {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    .state-buttons {
+      display: flex;
+      gap: 0.25rem;
+    }
+
+    .state-buttons button {
+      flex: 1;
+      font-size: 0.7rem;
+      padding: 0.25rem 0.3rem;
+    }
+
+    .state-item.never {
+      background: #121212;
+    }
+
+    .state-item.this-trip {
+      background: #1b3b1b;
+      border-color: #4caf50;
+    }
+
+    .state-item.previous-trip {
+      background: #3b2a12;
+      border-color: #ff9800;
+    }
+
+    .timestamp {
+      font-size: 0.7rem;
+      color: #bbb;
+    }
+
+    /* Map grid */
+
+    .map-grid {
+      display: grid;
+      grid-template-columns: repeat(10, minmax(40px, 1fr));
+      gap: 0.3rem;
+      margin-top: 0.5rem;
+    }
+
+    .map-cell {
+      border-radius: 4px;
+      border: 1px solid var(--border);
+      padding: 0.25rem 0.2rem;
+      text-align: center;
+      font-size: 0.7rem;
+      background: var(--never);
+      color: #000;
+    }
+
+    .map-cell.this-trip {
+      background: var(--this-trip);
+      color: #000;
+    }
+
+    .map-cell.previous-trip {
+      background: var(--previous-trip);
+      color: #000;
+    }
+
+    .map-cell.never {
+      background: var(--never);
+      color: #000;
+    }
+
+    .footer-note {
+      margin-top: 0.6rem;
+      font-size: 0.75rem;
+      color: #aaa;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>License Plate Trip Tracker</h1>
+    <p>Tap states as you spot them. Track this trip vs historical sightings.</p>
+  </header>
+
+  <main>
+    <section class="controls">
+      <button id="reset-current">Reset current trip</button>
+      <button id="reset-all" class="danger">Full reset (all history)</button>
+    </section>
+
+    <section class="layout">
+      <section class="panel">
+        <h2>State list</h2>
+        <div class="legend">
+          <div class="legend-item">
+            <span class="legend-swatch never"></span>
+            <span>Never clicked</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-swatch this-trip"></span>
+            <span>Clicked this trip</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-swatch previous-trip"></span>
+            <span>Clicked on previous trip</span>
+          </div>
+        </div>
+        <div id="state-list" class="state-list"></div>
+      </section>
+
+      <section class="panel">
+        <h2>United States map (grid view)</h2>
+        <div class="legend">
+          <div class="legend-item">
+            <span class="legend-swatch never"></span>
+            <span>Never clicked</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-swatch this-trip"></span>
+            <span>Clicked this trip</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-swatch previous-trip"></span>
+            <span>Clicked on previous trip</span>
+          </div>
+        </div>
+        <div id="map-grid" class="map-grid"></div>
+        <p class="footer-note">
+          Each square represents a state. Colors show whether it’s never seen, seen on a previous trip, or seen on this trip.
+        </p>
+      </section>
+    </section>
+  </main>
+
+  <script>
+    // --- Configuration ---
+
+    const STATES = [
+      "AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA",
+      "HI","ID","IL","IN","IA","KS","KY","LA","ME","MD",
+      "MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ",
+      "NM","NY","NC","ND","OH","OK","OR","PA","RI","SC",
+      "SD","TN","TX","UT","VT","VA","WA","WV","WI","WY"
+    ];
+
+    const STORAGE_KEYS = {
+      historical: "lp_historical_sightings",
+      current: "lp_current_trip_sightings"
+    };
+
+    // --- Storage helpers ---
+
+    function loadSightings(key) {
+      const raw = localStorage.getItem(key);
+      if (!raw) return {};
+      try {
+        return JSON.parse(raw);
+      } catch {
+        return {};
+      }
+    }
+
+    function saveSightings(key, data) {
+      localStorage.setItem(key, JSON.stringify(data));
+    }
+
+    function clearSightings(key) {
+      localStorage.removeItem(key);
+    }
+
+    // --- Status logic ---
+
+    function getStateStatus(state, historical, current) {
+      const inCurrent = !!current[state];
+      const inHistorical = !!historical[state];
+
+      if (inCurrent) return "this-trip";
+      if (inHistorical) return "previous-trip";
+      return "never";
+    }
+
+    function formatTimestamp(ts) {
+      if (!ts) return "";
+      const d = new Date(ts);
+      if (isNaN(d.getTime())) return ts;
+      return d.toLocaleString();
+    }
+
+    // --- UI rendering ---
+
+    const stateListEl = document.getElementById("state-list");
+    const mapGridEl = document.getElementById("map-grid");
+    const resetCurrentBtn = document.getElementById("reset-current");
+    const resetAllBtn = document.getElementById("reset-all");
+
+    function render() {
+      const historical = loadSightings(STORAGE_KEYS.historical);
+      const current = loadSightings(STORAGE_KEYS.current);
+
+      // Render state list
+      stateListEl.innerHTML = "";
+      STATES.forEach((state) => {
+        const status = getStateStatus(state, historical, current);
+
+        const item = document.createElement("div");
+        item.className = `state-item ${status}`;
+
+        const header = document.createElement("div");
+        header.className = "state-header";
+
+        const codeSpan = document.createElement("span");
+        codeSpan.className = "state-code";
+        codeSpan.textContent = state;
+
+        const statusSpan = document.createElement("span");
+        statusSpan.className = "state-status";
+        if (status === "never") statusSpan.textContent = "Never clicked";
+        else if (status === "this-trip") statusSpan.textContent = "This trip";
+        else statusSpan.textContent = "Previous trip";
+
+        header.appendChild(codeSpan);
+        header.appendChild(statusSpan);
+
+        const timestampDiv = document.createElement("div");
+        timestampDiv.className = "timestamp";
+        const ts = current[state] || historical[state];
+        timestampDiv.textContent = ts ? `Last: ${formatTimestamp(ts)}` : "";
+
+        const buttonsDiv = document.createElement("div");
+        buttonsDiv.className = "state-buttons";
+
+        const clickBtn = document.createElement("button");
+        clickBtn.textContent = "Click";
+        clickBtn.addEventListener("click", () => handleStateClick(state));
+
+        const undoTripBtn = document.createElement("button");
+        undoTripBtn.textContent = "Undo trip";
+        undoTripBtn.className = "secondary";
+        undoTripBtn.disabled = !current[state];
+        undoTripBtn.addEventListener("click", () => handleUndoCurrentTrip(state));
+
+        buttonsDiv.appendChild(clickBtn);
+        buttonsDiv.appendChild(undoTripBtn);
+
+        item.appendChild(header);
+        item.appendChild(timestampDiv);
+        item.appendChild(buttonsDiv);
+
+        stateListEl.appendChild(item);
+      });
+
+      // Render map grid
+      mapGridEl.innerHTML = "";
+      STATES.forEach((state) => {
+        const status = getStateStatus(state, historical, current);
+        const cell = document.createElement("div");
+        cell.className = `map-cell ${status}`;
+        cell.textContent = state;
+        mapGridEl.appendChild(cell);
+      });
+    }
+
+    // --- Event handlers ---
+
+    function handleStateClick(state) {
+      const historical = loadSightings(STORAGE_KEYS.historical);
+      const current = loadSightings(STORAGE_KEYS.current);
+      const now = new Date().toISOString();
+
+      // Record for current trip
+      current[state] = now;
+
+      // Ensure historical record exists
+      if (!historical[state]) {
+        historical[state] = now;
+      }
+
+      saveSightings(STORAGE_KEYS.current, current);
+      saveSightings(STORAGE_KEYS.historical, historical);
+      render();
+    }
+
+    function handleUndoCurrentTrip(state) {
+      const current = loadSightings(STORAGE_KEYS.current);
+      if (current[state]) {
+        delete current[state];
+        saveSightings(STORAGE_KEYS.current, current);
+        render();
+      }
+    }
+
+    function handleResetCurrentTrip() {
+      if (!confirm("Reset all states for the current trip?")) return;
+      clearSightings(STORAGE_KEYS.current);
+      render();
+    }
+
+    function handleFullReset() {
+      if (!confirm("Full reset: clear ALL history and current trip?")) return;
+      clearSightings(STORAGE_KEYS.current);
+      clearSightings(STORAGE_KEYS.historical);
+      render();
+    }
+
+    // --- Wire up controls ---
+
+    resetCurrentBtn.addEventListener("click", handleResetCurrentTrip);
+    resetAllBtn.addEventListener("click", handleFullReset);
+
+    // --- Initial render ---
+
+    render();
+  </script>
+</body>
+</html>
