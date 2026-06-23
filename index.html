@@ -206,77 +206,7 @@
         <div id="state-list" class="state-list"></div>
       </section>
 
-      <section class="panel">
-        <h2>Geographic U.S. Map</h2>
-        <div class="legend">
-          <div class="legend-item"><span class="legend-swatch never"></span>Never</div>
-          <div class="legend-item"><span class="legend-swatch this-trip"></span>This trip</div>
-          <div class="legend-item"><span class="legend-swatch previous-trip"></span>Previous trip</div>
-        </div>
-        <!-- Simplified geographic SVG with real outlines (no labels, not clickable) -->
-        <svg id="us-map" class="us-map" viewBox="0 0 960 600" xmlns="http://www.w3.org/2000/svg">
-          <!-- NOTE: This is a simplified, standard US map SVG with state paths.
-               Each path has id="XX" where XX is the state abbreviation. -->
-          <!-- Lower 48 -->
-          <g id="states">
-            <!-- Example subset; in a real deployment you’d include all 50 paths.
-                 For brevity, here’s a representative sample. You can expand later. -->
-            <path id="WA" class="state-path never" d="M74,72 L160,72 L160,130 L74,130 Z" />
-            <path id="OR" class="state-path never" d="M74,130 L160,130 L160,190 L74,190 Z" />
-            <path id="CA" class="state-path never" d="M74,190 L160,190 L160,260 L74,260 Z" />
-            <path id="ID" class="state-path never" d="M160,72 L220,72 L220,130 L160,130 Z" />
-            <path id="NV" class="state-path never" d="M160,130 L220,130 L220,190 L160,190 Z" />
-            <path id="AZ" class="state-path never" d="M160,190 L220,190 L220,260 L160,260 Z" />
-            <path id="UT" class="state-path never" d="M220,130 L280,130 L280,190 L220,190 Z" />
-            <path id="CO" class="state-path never" d="M280,130 L340,130 L340,190 L280,190 Z" />
-            <path id="NM" class="state-path never" d="M280,190 L340,190 L340,260 L280,260 Z" />
-            <path id="TX" class="state-path never" d="M340,260 L440,260 L440,320 L340,320 Z" />
-            <path id="OK" class="state-path never" d="M340,220 L440,220 L440,260 L340,260 Z" />
-            <path id="KS" class="state-path never" d="M340,180 L440,180 L440,220 L340,220 Z" />
-            <path id="NE" class="state-path never" d="M340,140 L440,140 L440,180 L340,180 Z" />
-            <path id="SD" class="state-path never" d="M340,100 L440,100 L440,140 L340,140 Z" />
-            <path id="ND" class="state-path never" d="M340,60 L440,60 L440,100 L340,100 Z" />
-            <path id="MN" class="state-path never" d="M440,60 L520,60 L520,100 L440,100 Z" />
-            <path id="IA" class="state-path never" d="M440,100 L520,100 L520,140 L440,140 Z" />
-            <path id="MO" class="state-path never" d="M440,140 L520,140 L520,180 L440,180 Z" />
-            <path id="AR" class="state-path never" d="M440,180 L520,180 L520,220 L440,220 Z" />
-            <path id="LA" class="state-path never" d="M440,220 L520,220 L520,260 L440,260 Z" />
-            <path id="WI" class="state-path never" d="M520,60 L580,60 L580,100 L520,100 Z" />
-            <path id="IL" class="state-path never" d="M520,100 L580,100 L580,140 L520,140 Z" />
-            <path id="KY" class="state-path never" d="M520,140 L580,140 L580,180 L520,180 Z" />
-            <path id="TN" class="state-path never" d="M520,180 L580,180 L580,220 L520,220 Z" />
-            <path id="MS" class="state-path never" d="M520,220 L580,220 L580,260 L520,260 Z" />
-            <path id="MI" class="state-path never" d="M580,60 L640,60 L640,100 L580,100 Z" />
-            <path id="IN" class="state-path never" d="M580,100 L640,100 L640,140 L580,140 Z" />
-            <path id="OH" class="state-path never" d="M580,140 L640,140 L640,180 L580,180 Z" />
-            <path id="AL" class="state-path never" d="M580,220 L640,220 L640,260 L580,260 Z" />
-            <path id="GA" class="state-path never" d="M640,220 L700,220 L700,260 L640,260 Z" />
-            <path id="SC" class="state-path never" d="M700,220 L760,220 L760,260 L700,260 Z" />
-            <path id="NC" class="state-path never" d="M700,180 L760,180 L760,220 L700,220 Z" />
-            <path id="VA" class="state-path never" d="M640,180 L700,180 L700,220 L640,220 Z" />
-            <path id="WV" class="state-path never" d="M640,140 L700,140 L700,180 L640,180 Z" />
-            <path id="PA" class="state-path never" d="M640,100 L700,100 L700,140 L640,140 Z" />
-            <path id="NY" class="state-path never" d="M640,60 L700,60 L700,100 L640,100 Z" />
-            <path id="NJ" class="state-path never" d="M700,100 L740,100 L740,140 L700,140 Z" />
-            <path id="DE" class="state-path never" d="M740,140 L780,140 L780,160 L740,160 Z" />
-            <path id="MD" class="state-path never" d="M740,160 L780,160 L780,180 L740,180 Z" />
-            <path id="CT" class="state-path never" d="M700,60 L740,60 L740,80 L700,80 Z" />
-            <path id="RI" class="state-path never" d="M740,80 L780,80 L780,100 L740,100 Z" />
-            <path id="MA" class="state-path never" d="M700,40 L760,40 L760,60 L700,60 Z" />
-            <path id="VT" class="state-path never" d="M760,40 L800,40 L800,60 L760,60 Z" />
-            <path id="NH" class="state-path never" d="M760,60 L800,60 L800,80 L760,80 Z" />
-            <path id="ME" class="state-path never" d="M800,40 L860,40 L860,80 L800,80 Z" />
-          </g>
-
-          <!-- Alaska inset -->
-          <path id="AK" class="state-path never" d="M40,360 L140,360 L140,440 L40,440 Z" />
-          <!-- Hawaii inset -->
-          <path id="HI" class="state-path never" d="M160,400 L220,400 L220,440 L160,440 Z" />
-        </svg>
-        <p class="footer-note">
-          Map colors update based on the state list and trip history. Shapes are not clickable.
-        </p>
-      </section>
+      
 
       <section class="panel">
         <h2>Full Grid Map</h2>
