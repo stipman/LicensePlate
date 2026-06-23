@@ -79,3 +79,380 @@
 
     @media (max-width: 900px) {
       .layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .panel {
+      background: #1a1a1a;
+      border-radius: 8px;
+      padding: 1rem;
+      border: 1px solid #333;
+    }
+
+    .panel h2 {
+      margin-top: 0;
+      font-size: 1.1rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+      font-size: 0.8rem;
+    }
+
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+    }
+
+    .legend-swatch {
+      width: 14px;
+      height: 14px;
+      border-radius: 3px;
+      border: 1px solid #444;
+    }
+
+    .legend-swatch.never { background: var(--never); }
+    .legend-swatch.this-trip { background: var(--this-trip); }
+    .legend-swatch.previous-trip { background: var(--previous-trip); }
+
+    /* State list */
+    .state-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+      gap: 0.4rem;
+      width: 100%;
+    }
+
+    .state-item {
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      padding: 0.6rem 0.4rem;
+      text-align: center;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .state-item.never { background: var(--never); color: #000; }
+    .state-item.this-trip { background: var(--this-trip); color: #000; }
+    .state-item.previous-trip { background: var(--previous-trip); color: #000; }
+
+    /* Map grid */
+    .map-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+      gap: 0.3rem;
+      margin-top: 0.5rem;
+    }
+
+    .map-cell {
+      border-radius: 4px;
+      border: 1px solid var(--border);
+      padding: 0.25rem 0.2rem;
+      text-align: center;
+      font-size: 0.7rem;
+      background: var(--never);
+      color: #000;
+    }
+
+    .map-cell.this-trip { background: var(--this-trip); }
+    .map-cell.previous-trip { background: var(--previous-trip); }
+
+    /* SVG map */
+    .us-map {
+      width: 100%;
+      max-width: 600px;
+      height: auto;
+      border: 1px solid #333;
+      border-radius: 8px;
+      background: #111;
+    }
+
+    .svg-state rect {
+      stroke: #333;
+      stroke-width: 1;
+    }
+
+    .svg-state text {
+      font-size: 10px;
+      fill: #fff;
+      pointer-events: none;
+    }
+
+    .svg-state.never rect { fill: var(--never); }
+    .svg-state.this-trip rect { fill: var(--this-trip); }
+    .svg-state.previous-trip rect { fill: var(--previous-trip); }
+
+    .footer-note {
+      margin-top: 0.6rem;
+      font-size: 0.75rem;
+      color: #aaa;
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h1>License Plate Trip Tracker</h1>
+    <p>Tap states as you spot them. Long‑press to undo. Extra‑long press to reset.</p>
+  </header>
+
+  <main>
+    <section class="controls">
+      <button id="reset-current">Reset current trip</button>
+      <button id="reset-all" class="danger">Full reset (all history)</button>
+    </section>
+
+    <section class="layout">
+
+      <!-- STATE LIST -->
+      <section class="panel">
+        <h2>State List</h2>
+        <div class="legend">
+          <div class="legend-item"><span class="legend-swatch never"></span>Never</div>
+          <div class="legend-item"><span class="legend-swatch this-trip"></span>This trip</div>
+          <div class="legend-item"><span class="legend-swatch previous-trip"></span>Previous trip</div>
+        </div>
+        <div id="state-list" class="state-list"></div>
+      </section>
+
+      <!-- SVG MAP -->
+      <section class="panel">
+        <h2>United States SVG Map</h2>
+        <div class="legend">
+          <div class="legend-item"><span class="legend-swatch never"></span>Never</div>
+          <div class="legend-item"><span class="legend-swatch this-trip"></span>This trip</div>
+          <div class="legend-item"><span class="legend-swatch previous-trip"></span>Previous trip</div>
+        </div>
+        <svg id="us-map" class="us-map" viewBox="0 0 500 300"></svg>
+      </section>
+
+      <!-- FULL GRID MAP -->
+      <section class="panel">
+        <h2>Full Grid Map</h2>
+        <div id="map-grid" class="map-grid"></div>
+      </section>
+
+      <!-- EAST COAST GRID -->
+      <section class="panel">
+        <h2>East Coast States</h2>
+        <div id="east-coast-grid" class="map-grid"></div>
+      </section>
+
+    </section>
+  </main>
+
+  <script>
+    /* ------------------------------
+       STATE DATA
+    ------------------------------ */
+
+    const STATES = [
+      "AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA",
+      "HI","ID","IL","IN","IA","KS","KY","LA","ME","MD",
+      "MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ",
+      "NM","NY","NC","ND","OH","OK","OR","PA","RI","SC",
+      "SD","TN","TX","UT","VT","VA","WA","WV","WI","WY"
+    ];
+
+    const EAST_COAST_STATES = [
+      "FL","GA","SC","NC","MD","DE","NY","CT","RI","MA",
+      "VT","NH","ME","DC"
+    ];
+
+    const STORAGE_KEYS = {
+      historical: "lp_historical_sightings",
+      current: "lp_current_trip_sightings"
+    };
+
+    /* ------------------------------
+       STORAGE HELPERS
+    ------------------------------ */
+
+    function loadSightings(key) {
+      const raw = localStorage.getItem(key);
+      if (!raw) return {};
+      try { return JSON.parse(raw); }
+      catch { return {}; }
+    }
+
+    function saveSightings(key, data) {
+      localStorage.setItem(key, JSON.stringify(data));
+    }
+
+    function clearSightings(key) {
+      localStorage.removeItem(key);
+    }
+
+    /* ------------------------------
+       STATUS LOGIC
+    ------------------------------ */
+
+    function getStateStatus(state, historical, current) {
+      if (current[state]) return "this-trip";
+      if (historical[state]) return "previous-trip";
+      return "never";
+    }
+
+    /* ------------------------------
+       HAPTIC FEEDBACK
+    ------------------------------ */
+
+    function vibrate(pattern) {
+      if (navigator.vibrate) navigator.vibrate(pattern);
+    }
+
+    /* ------------------------------
+       PRESS HANDLER (tap / long / extra-long)
+    ------------------------------ */
+
+    function addPressHandlers(element, onTap, onLongPress, onExtraLongPress) {
+      let pressStart = 0;
+
+      const start = () => {
+        pressStart = Date.now();
+      };
+
+      const end = () => {
+        if (!pressStart) return;
+        const duration = Date.now() - pressStart;
+
+        if (duration < 500) {
+          onTap();
+        } else if (duration < 1500) {
+          vibrate(40);
+          onLongPress();
+        } else {
+          vibrate([60, 40, 60]);
+          onExtraLongPress();
+        }
+
+        pressStart = 0;
+      };
+
+      element.addEventListener("touchstart", start);
+      element.addEventListener("touchend", end);
+
+      element.addEventListener("mousedown", start);
+      element.addEventListener("mouseup", end);
+
+      element.addEventListener("contextmenu", (e) => e.preventDefault());
+    }
+
+    /* ------------------------------
+       EVENT HANDLERS
+    ------------------------------ */
+
+    function handleStateClick(state) {
+      const historical = loadSightings(STORAGE_KEYS.historical);
+      const current = loadSightings(STORAGE_KEYS.current);
+      const now = new Date().toISOString();
+
+      current[state] = now;
+      if (!historical[state]) historical[state] = now;
+
+      saveSightings(STORAGE_KEYS.current, current);
+      saveSightings(STORAGE_KEYS.historical, historical);
+      render();
+    }
+
+    function handleUndoCurrentTrip(state) {
+      const current = loadSightings(STORAGE_KEYS.current);
+      delete current[state];
+      saveSightings(STORAGE_KEYS.current, current);
+      render();
+    }
+
+    function handleFullResetState(state) {
+      const historical = loadSightings(STORAGE_KEYS.historical);
+      const current = loadSightings(STORAGE_KEYS.current);
+
+      delete historical[state];
+      delete current[state];
+
+      saveSightings(STORAGE_KEYS.historical, historical);
+      saveSightings(STORAGE_KEYS.current, current);
+      render();
+    }
+
+    function handleResetCurrentTrip() {
+      if (!confirm("Reset all states for the current trip")) return;
+      clearSightings(STORAGE_KEYS.current);
+      render();
+    }
+
+    function handleFullReset() {
+      if (!confirm("Full reset: clear ALL history and current trip")) return;
+      clearSightings(STORAGE_KEYS.current);
+      clearSightings(STORAGE_KEYS.historical);
+      render();
+    }
+
+    /* ------------------------------
+       RENDER FUNCTIONS
+    ------------------------------ */
+
+    const stateListEl = document.getElementById("state-list");
+    const mapGridEl = document.getElementById("map-grid");
+    const eastGridEl = document.getElementById("east-coast-grid");
+    const usMapEl = document.getElementById("us-map");
+
+    function renderStateList(historical, current) {
+      stateListEl.innerHTML = "";
+      STATES.forEach((state) => {
+        const status = getStateStatus(state, historical, current);
+        const item = document.createElement("div");
+        item.className = `state-item ${status}`;
+        item.textContent = state;
+
+        addPressHandlers(
+          item,
+          () => handleStateClick(state),
+          () => handleUndoCurrentTrip(state),
+          () => handleFullResetState(state)
+        );
+
+        stateListEl.appendChild(item);
+      });
+    }
+
+    function renderGridMap(historical, current) {
+      mapGridEl.innerHTML = "";
+      STATES.forEach((state) => {
+        const status = getStateStatus(state, historical, current);
+        const cell = document.createElement("div");
+        cell.className = `map-cell ${status}`;
+        cell.textContent = state;
+        mapGridEl.appendChild(cell);
+      });
+    }
+
+    function renderEastCoastGrid(historical, current) {
+      eastGridEl.innerHTML = "";
+      EAST_COAST_STATES.forEach((state) => {
+        const status = getStateStatus(state, historical, current);
+        const cell = document.createElement("div");
+        cell.className = `map-cell ${status}`;
+        cell.textContent = state;
+        eastGridEl.appendChild(cell);
+      });
+    }
+
+    function renderSvgMap(historical, current) {
+      usMapEl.innerHTML = "";
+
+      const cols = 10;
+      const tileWidth = 45;
+      const tileHeight = 25;
+      const xPad = 10;
+      const yPad = 10;
+
+      STATES.forEach((state, index) => {
+        const status = getState
