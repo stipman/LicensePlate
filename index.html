@@ -159,17 +159,6 @@
     .map-cell.this-trip { background: var(--this-trip); }
     .map-cell.previous-trip { background: var(--previous-trip); }
 
-    .us-map {
-      width: 100%;
-      max-width: 700px;
-      height: auto;
-      border: 1px solid #333;
-      border-radius: 8px;
-      background: #111;
-      display: block;
-      margin-top: 0.5rem;
-    }
-
     .state-path.never { fill: var(--never); stroke: #333; stroke-width: 0.5; }
     .state-path.this-trip { fill: var(--this-trip); stroke: #333; stroke-width: 0.5; }
     .state-path.previous-trip { fill: var(--previous-trip); stroke: #333; stroke-width: 0.5; }
@@ -260,12 +249,13 @@
       <section class="panel">
         <h2>East Coast States</h2>
         <div id="east-coast-grid" class="map-grid"></div>
-        <div class="legend">
-          <div class="legend-item"><span class="legend-swatch never"></span>Never</div>
-          <div class="legend-item"><span class="legend-swatch this-trip"></span>This trip</div>
-          <div class="legend-item"><span class="legend-swatch previous-trip"></span>Previous trip</div>
-        </div>
       </section>
+
+      <div class="legend">
+        <div class="legend-item"><span class="legend-swatch never"></span>Never</div>
+        <div class="legend-item"><span class="legend-swatch this-trip"></span>This trip</div>
+        <div class="legend-item"><span class="legend-swatch previous-trip"></span>Previous trip</div>
+      </div>
 
     </section>
   </main>
@@ -397,7 +387,6 @@
     const stateListEl = document.getElementById("state-list");
     const mapGridEl = document.getElementById("map-grid");
     const eastGridEl = document.getElementById("east-coast-grid");
-    const usMapEl = document.getElementById("us-map");
 
     function renderStateList(historical, current) {
       stateListEl.innerHTML = "";
