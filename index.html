@@ -186,26 +186,42 @@
       align-items: center;
       padding: 1rem;
       margin-bottom: 1rem;
-      background: #f5f5f5;
+      background: #fafafa;
       border-bottom: 2px solid #ddd;
     }
     
     .counter-box {
       text-align: center;
+      padding: 0.6rem 1rem;
+      border-radius: 8px;
+      min-width: 120px;
     }
     
+    .counter-box.trip {
+      background: var(--this-trip);
+      color: #000;
+    }
+    
+    .counter-box.historical {
+      background: var(--previous-trip);
+      color: #000;
+    }
+
+    .counter-box.never {
+      background: var(--never);
+      color: #000;
+    }
     .counter-number {
       font-size: 2rem;
       font-weight: 700;
       display: block;
-      background: var(--previous-trip); 
-      color: #000;
     }
     
     .counter-label {
       font-size: 0.9rem;
-      color: #555;
+      opacity: 0.9;
     }
+    
   </style>
 </head>
 
@@ -223,17 +239,21 @@
 
     <section class="layout
       <section class="panel">
-          <div id="counter-bar">
-            <div class="counter-box">
+         <div id="counter-bar">
+            <div class="counter-box trip">
               <span class="counter-number" id="trip-count">0</span>
               <span class="counter-label">Seen This Trip</span>
             </div>
           
-            <div class="counter-box">
+            <div class="counter-box historical">
               <span class="counter-number" id="historical-count">0</span>
               <span class="counter-label">Seen Historically</span>
             </div>
-          </div>
+              <div class="counter-box never">
+                <span class="counter-number" id="never-count">0</span>
+                <span class="counter-label">Never Seen Yet</span>
+              </div>
+            </div>
         <h2>State List</h2>
         <div class="legend">
           <div class="legend-item"><span class="legend-swatch never"></span>Never</div>
@@ -321,8 +341,13 @@
       const tripCount = Object.keys(current).length;
       const historicalCount = Object.keys(historical).length;
     
+      // Total states = 50 (or 51 if you include DC — adjust as needed)
+      const totalStates = 50;
+      const neverCount = totalStates - historicalCount;
+    
       document.getElementById("trip-count").textContent = tripCount;
       document.getElementById("historical-count").textContent = historicalCount;
+      document.getElementById("never-count").textContent = neverCount;
     }
 
     function handleStateClick(state) {
