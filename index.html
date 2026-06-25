@@ -179,6 +179,31 @@
       font-size: 0.75rem;
       color: #aaa;
     }
+    
+    #counter-bar {
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      background: #f5f5f5;
+      border-bottom: 2px solid #ddd;
+    }
+    
+    .counter-box {
+      text-align: center;
+    }
+    
+    .counter-number {
+      font-size: 2rem;
+      font-weight: 700;
+      display: block;
+    }
+    
+    .counter-label {
+      font-size: 0.9rem;
+      color: #555;
+    }
   </style>
 </head>
 
@@ -194,9 +219,19 @@
       <button id="reset-all" class="danger">Full reset (all history)</button>
     </section>
 
-    <section class="layout">
-
+    <section class="layout
       <section class="panel">
+          <div id="counter-bar">
+            <div class="counter-box">
+              <span class="counter-number" id="trip-count">0</span>
+              <span class="counter-label">Seen This Trip</span>
+            </div>
+          
+            <div class="counter-box">
+              <span class="counter-number" id="historical-count">0</span>
+              <span class="counter-label">Seen Historically</span>
+            </div>
+          </div>
         <h2>State List</h2>
         <div class="legend">
           <div class="legend-item"><span class="legend-swatch never"></span>Never</div>
