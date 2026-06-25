@@ -315,6 +315,14 @@
       element.addEventListener("contextmenu", (e) => e.preventDefault());
     }
 
+    function updateCounters(historical, current) {
+      const tripCount = Object.keys(current).length;
+      const historicalCount = Object.keys(historical).length;
+    
+      document.getElementById("trip-count").textContent = tripCount;
+      document.getElementById("historical-count").textContent = historicalCount;
+    }
+
     function handleStateClick(state) {
       const historical = loadSightings(STORAGE_KEYS.historical);
       const current = loadSightings(STORAGE_KEYS.current);
@@ -409,7 +417,7 @@
     function render() {
       const historical = loadSightings(STORAGE_KEYS.historical);
       const current = loadSightings(STORAGE_KEYS.current);
-
+      updateCounters(historical, current);
       renderStateList(historical, current);
       renderEastCoastGrid(historical, current);
     }
